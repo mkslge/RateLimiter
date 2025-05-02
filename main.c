@@ -11,9 +11,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/socket.h>
-    #include <arpa/inet.h>
-    #include <unistd.h>
+#include "limit.h"
+
 
 int main() {
     struct sockaddr_in socket_addr;
@@ -44,22 +43,46 @@ int main() {
         //receive message
         ssize_t received_bytes = recvfrom(socket_fd, (char *)client_buffer, sizeof(client_buffer), 
         0, (struct sockaddr_in *)&client_addr, &client_len);
+        client_info* client = create_client(socket_addr, socket_fd);
 
+        //checks if client is in our buffer of recent connected clients
+        int client_index = get_client_index(client);
+
+        //if its not we update its time and then add it to our buffer
+        if(client_index == -1) {
+            update_client_time(client);
+            add_client(client);
+
+        } else {
+            //otherwise if its a known client we check if it has sent a message within last timefram
+            if(rate_limit_required(client)) {
+                //if it has we skip over the message and rate limit it 
+                printf("Client Rate Limited");
+                continue;
+            } else {
+                //otherwise we let the message go through but update the clients' time accordingly
+                update_client_time(client);
+            }
+        }
+
+        //check to see if we got a valid message
         if(received_bytes < 0) {
             printf("Received failed\n");
             close(socket_fd);
             return 1;
         }
 
+        //make sure to terminate message correctly
         client_buffer[received_bytes] = '\0';
+
+        //display message and send response
         printf("Received %s from %s:d\n", client_buffer, 
         inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
-
         sendto(socket_fd, "Received by server\n", strlen("Received by server\n"), 0, (const struct sockaddr *)&client_addr, client_len);
         
     }
     
+    //cleanup
     close(socket_fd);
     return 0;
 }
