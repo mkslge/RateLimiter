@@ -12,6 +12,7 @@
 #define MAX_REQUEST_SIZE 2047
 #define MAX_UDP_REQUEST_SIZE 8008
 #define SOCKET int
+
 typedef struct client_info {
     socklen_t address_length;
     struct sockaddr_storage address;
@@ -41,7 +42,7 @@ int rate_limit_required(client_info* client);
 
 client_info* get_recent_client(int index);
 
-
+client_info* create_client(struct sockaddr_in sock, int socket_fd);
 
 
 

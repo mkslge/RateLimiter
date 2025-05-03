@@ -220,3 +220,17 @@ double time_difference(struct timespec *time1, struct timespec *time2) {
 client_info* get_recent_client(int index) {
     return recent_clients[index];
 }
+
+
+client_info* create_client(struct sockaddr_in sockaddr, int socket_fd) {
+    client_info* client = (client_info*)malloc(sizeof(client_info));
+
+    client->address_length = sockaddr.sin_len;
+    client->udp_addr = sockaddr;
+    client->socket = socket_fd;
+    client->ts = (struct timespec*)malloc(sizeof(struct timespec));
+    clock_gettime(CLOCK_REALTIME, client->ts);
+
+
+    return client;
+}
