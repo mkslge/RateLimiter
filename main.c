@@ -57,7 +57,7 @@ int main() {
             //otherwise if its a known client we check if it has sent a message within last timefram
             if(rate_limit_required(client)) {
                 //if it has we skip over the message and rate limit it 
-                printf("Client Rate Limited");
+                printf("Client Rate Limited\n");
                 continue;
             } else {
                 //otherwise we let the message go through but update the clients' time accordingly
